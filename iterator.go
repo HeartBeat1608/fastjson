@@ -335,3 +335,93 @@ func (it *Iterator) char() byte {
 
 	return it.data[it.head]
 }
+
+func (it *Iterator) SkipValue() error {
+	it.skipWhiteSpace()
+
+	if it.head >= it.dataLen {
+		return it.error("unexpected end of input")
+	}
+
+	c := it.data[it.head]
+	switch c {
+	case '"':
+		it.head++
+		for it.head < it.dataLen {
+			if it.data[it.head] == '"' {
+				it.head++
+				return nil
+			}
+			if it.data[it.head] == '\\' {
+				it.head++
+			}
+			it.head++
+		}
+	case '{':
+		it.head++
+		depth := 1
+		for it.head < it.dataLen && depth > 0 {
+			c := it.data[it.head]
+			if c == '{' {
+				depth++
+			} else if c == '}' {
+				depth--
+			} else if c == '"' {
+				it.head++
+				for it.head < it.dataLen {
+					if it.data[it.head] == '"' {
+						break
+					}
+					if it.data[it.head] == '\\' {
+						it.head++
+					}
+					it.head++
+				}
+			}
+			it.head++
+		}
+		if depth > 0 {
+			return it.error("unternimated object")
+		}
+		return nil
+	case '[':
+		it.head++
+		depth := 1
+		for it.head < it.dataLen && depth > 0 {
+			c := it.data[it.head]
+			if c == '[' {
+				depth++
+			} else if c == ']' {
+				depth--
+			} else if c == '"' {
+				it.head++
+				for it.head < it.dataLen {
+					if it.data[it.head] == '"' {
+						break
+					}
+					if it.data[it.head] == '\\' {
+						it.head++
+					}
+					it.head++
+				}
+			}
+			it.head++
+		}
+
+		if depth > 0 {
+			return it.error("unternimated array")
+		}
+		return nil
+	default:
+		for it.head < it.dataLen {
+			c := it.data[it.head]
+			if parseTable[c]&maskWhiteSpace != 0 || c == ',' || c == '}' || c == ']' {
+				return nil
+			}
+			it.head++
+		}
+		return nil
+	}
+
+	return it.error("expected value")
+}

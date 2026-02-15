@@ -1,0 +1,26 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/HeartBeat1608/fastjson
+cpu: Apple M4
+BenchmarkUnmarshal_SmallStruct_Fast-10        	11225730	       106.3 ns/op	      48 B/op	       1 allocs/op
+BenchmarkUnmarshal_SmallStruct_Std-10         	 2487976	       480.7 ns/op	     232 B/op	       5 allocs/op
+BenchmarkUnmarshal_LargeStruct_Fast-10        	 1000000	      1211 ns/op	     608 B/op	      21 allocs/op
+BenchmarkUnmarshal_LargeStruct_Std-10         	  342966	      3504 ns/op	     432 B/op	      20 allocs/op
+BenchmarkUnmarshal_Interface_Fast-10          	 6503547	       185.3 ns/op	     416 B/op	       6 allocs/op
+BenchmarkUnmarshal_Interface_Std-10           	 2465502	       484.1 ns/op	     576 B/op	      14 allocs/op
+BenchmarkUnmarshal_InterfaceLarge_Fast-10     	  927757	      1302 ns/op	    3000 B/op	      43 allocs/op
+BenchmarkUnmarshal_InterfaceLarge_Std-10      	  344658	      3456 ns/op	    3776 B/op	      97 allocs/op
+BenchmarkUnmarshal_Slice/FastJSON-10          	 1840090	       650.6 ns/op	     448 B/op	      21 allocs/op
+BenchmarkUnmarshal_Slice/StdLib-10            	 1528744	       782.9 ns/op	     280 B/op	      15 allocs/op
+BenchmarkSkipWhiteSpace_LUT-10                	    2616	    457756 ns/op	      48 B/op	       1 allocs/op
+BenchmarkSkipWhiteSpace_Naive-10              	    2454	    486376 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSkipWhiteSpace_StdLib_TrimLeft-10    	    2317	    518789 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReadInt64_Fast-10                    	59464327	        19.70 ns/op	      48 B/op	       1 allocs/op
+BenchmarkReadInt64_StdLib-10                  	14864492	        79.65 ns/op	     144 B/op	       1 allocs/op
+BenchmarkReadFloat64_Fast-10                  	33884385	        34.75 ns/op	      48 B/op	       1 allocs/op
+BenchmarkReadFloat64_StdLib-10                	13859700	        86.00 ns/op	     144 B/op	       1 allocs/op
+BenchmarkReadString_Simple-10                 	40778761	        29.33 ns/op	      48 B/op	       1 allocs/op
+BenchmarkReadString_Escaped-10                	19703596	        59.38 ns/op	     144 B/op	       3 allocs/op
+BenchmarkStdLib_UnmarshalString-10            	 7469764	       159.8 ns/op	     192 B/op	       2 allocs/op
+PASS
+ok  	github.com/HeartBeat1608/fastjson	24.166s
