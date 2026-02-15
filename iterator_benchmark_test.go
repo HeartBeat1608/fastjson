@@ -40,10 +40,9 @@ func BenchmarkSkipWhiteSpace_Naive(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		it := NewIterator(data)
-		naiveSkipWhitespace(data)
-		if it.head != len(data) {
-			b.Fatalf("Expected nothing, got %x at offset %d", it.char(), it.head)
+		pos := naiveSkipWhitespace(data)
+		if pos != len(data) {
+			b.Fatalf("did not skip all whitespaces")
 		}
 	}
 }
