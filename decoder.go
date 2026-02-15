@@ -15,6 +15,12 @@ type DecoderFunc func(it *Iterator, p unsafe.Pointer) error
 // cache stores compiled decoders to avoid repeated reflection analysis.
 var decoderCache sync.Map
 
+type sliceHeader struct {
+	Data unsafe.Pointer
+	Len  int
+	Cap  int
+}
+
 // getDecoder returns a cached decoder or compiles a new one.
 func getDecoder(t reflect.Type) (DecoderFunc, error) {
 	if f, ok := decoderCache.Load(t); ok {
@@ -122,21 +128,22 @@ func decodeBool(it *Iterator, p unsafe.Pointer) error {
 // compileStructDecoder handles []T
 func compileSliceDecoder(t reflect.Type) (DecoderFunc, error) {
 	elemType := t.Elem()
+	elemSize := elemType.Size()
 	elemDec, err := compileDecoder(elemType)
 	if err != nil {
 		return nil, err
 	}
 
-	sliceType := t
+	// sliceType := t
 
 	return func(it *Iterator, p unsafe.Pointer) error {
+		header := (*sliceHeader)(p)
+
 		if err := it.ReadArrayStart(); err != nil {
 			return err
 		}
 
-		sliceVal := reflect.NewAt(sliceType, p).Elem()
-
-		sliceVal.SetLen(0)
+		header.Len = 0
 
 		for {
 			it.skipWhiteSpace()
@@ -145,15 +152,26 @@ func compileSliceDecoder(t reflect.Type) (DecoderFunc, error) {
 				return nil
 			}
 
-			newElem := reflect.New(elemType).Elem()
-			sliceVal.Set(reflect.Append(sliceVal, newElem))
+			if header.Len >= header.Cap {
+				newCap := header.Cap * 2
+				if newCap == 0 {
+					newCap = 8
+				}
 
-			idx := sliceVal.Len() - 1
-			elemPtr := unsafe.Pointer(sliceVal.Index(idx).Addr().Pointer())
+				src := reflect.NewAt(t, p).Elem()
+				newSlice := reflect.MakeSlice(t, header.Len, newCap)
+				reflect.Copy(newSlice, src)
+				src.Set(newSlice)
+
+				header = (*sliceHeader)(p)
+			}
+
+			elemPtr := unsafe.Pointer(uintptr(header.Data) + uintptr(header.Len)*elemSize)
 
 			if err := elemDec(it, elemPtr); err != nil {
 				return err
 			}
+			header.Len++
 
 			it.skipWhiteSpace()
 			if it.head < it.dataLen && it.data[it.head] == ',' {
